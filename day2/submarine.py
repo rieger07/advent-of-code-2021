@@ -19,6 +19,7 @@ class Submarine:
     def magnitude(self) -> int:
         return self.horizontal * self.depth
 
+
 @dataclass
 class Submarine2:
     horizontal: int = 0
