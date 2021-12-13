@@ -44,7 +44,7 @@ class BingoBoard:
     rows: list[list[BingoNumber]] = field(default_factory=list)
     columns: list[list[BingoNumber]] = field(default_factory=list)
     last_num: int = -1
-    won:bool = False
+    won: bool = False
 
     def winner(self):
         if self.won:
@@ -75,14 +75,16 @@ class BingoBoard:
             str_rep += " ".join(l) + "\r\n"
         return str_rep + "########################\r\n"
 
-
     def call(self, number: int):
-        try:
-            self.numbers[number].marked = True
+        if self.won is not True:
             self.last_num = number
-            return self.winner()
-        except KeyError:
-            return False
+            try:
+                self.numbers[number].marked = True
+                return self.winner()
+            except KeyError:
+                return False
+        else:
+            return True
 
     def score(self):
         """
@@ -97,22 +99,24 @@ class BingoBoard:
                 sum_of_unmarked += v.number
         return sum_of_unmarked * self.last_num
 
-def create_nested_lists(num_rows=5)->list[BingoBoard]:
+
+def create_nested_lists(num_rows=5) -> list[BingoBoard]:
     return [list() for _ in range(num_rows)]
+
 
 def create_boards(board_strings):
     boards: list[BingoBoard] = list()
 
-    numbers: dict[int,BingoNumber] = dict()
-    rows:list[list[BingoNumber]] = create_nested_lists()
-    columns:list[list[BingoNumber]] = create_nested_lists()
+    numbers: dict[int, BingoNumber] = dict()
+    rows: list[list[BingoNumber]] = create_nested_lists()
+    columns: list[list[BingoNumber]] = create_nested_lists()
     row_idx = 0
     for line in board_strings:
         if line == "":
             boards.append(BingoBoard(numbers, rows, columns))
-            numbers: dict[int,BingoNumber] = dict()
-            rows:list[list[BingoNumber]] = create_nested_lists()
-            columns:list[list[BingoNumber]] = create_nested_lists()
+            numbers: dict[int, BingoNumber] = dict()
+            rows: list[list[BingoNumber]] = create_nested_lists()
+            columns: list[list[BingoNumber]] = create_nested_lists()
             row_idx = 0
             continue
         for col_idx, str_num in enumerate(line.split()):
@@ -121,9 +125,10 @@ def create_boards(board_strings):
             rows[row_idx].append(numbers[int_num])
             columns[col_idx].append(numbers[int_num])
 
-        row_idx +=1
+        row_idx += 1
     boards.append(BingoBoard(numbers, rows, columns))
     return boards
+
 
 def part1():
     #input_list = EXAMPLE.splitlines()
@@ -131,7 +136,7 @@ def part1():
     with open("day4/input.txt", "r", encoding="utf-8") as f:
         for l in f.readlines():
             input_list.append(l.strip())
-    
+
     calls = input_list[0].split(",")
 
     board_strings = input_list[2:]
@@ -141,23 +146,23 @@ def part1():
     for board in boards:
         print(board.strBoard())
 
-
     for str_num in calls:
         int_num = int(str_num)
         for board in boards:
             if board.call(int_num):
                 print(board.strBoard())
                 print(board.score())
-                
+
                 return None
 
+
 def part2():
-    input_list = EXAMPLE.splitlines()
-    # input_list = list()
-    # with open("day4/input.txt", "r", encoding="utf-8") as f:
-    #     for l in f.readlines():
-    #         input_list.append(l.strip())
-    
+    #input_list = EXAMPLE.splitlines()
+    input_list = list()
+    with open("day4/input.txt", "r", encoding="utf-8") as f:
+        for l in f.readlines():
+            input_list.append(l.strip())
+
     calls = input_list[0].split(",")
 
     board_strings = input_list[2:]
@@ -167,24 +172,23 @@ def part2():
     # for board in boards:
     #     print(board.strBoard())
 
-    valid_boards = boards
+    valid_boards = list(boards)
 
-    winners = 0
-    exit_flag = False
+    last_board: BingoBoard = None
+    #print(f"Boards: {len(boards)}")
     for str_num in calls:
         int_num = int(str_num)
-        for board in valid_boards:
+        print(int_num)
+        for board in boards:
+            if board not in valid_boards:
+                continue
             if board.call(int_num):
-                if exit_flag:
-                    print(board.strBoard())
-                    print(board.score())
-                    print(board.last_num)
-                    
-                    return None
-                valid_boards.remove(board)
-
-        if len(valid_boards) == 1:
-            exit_flag = True
+                last_board = valid_boards.pop(valid_boards.index(board))
+                #print(f"Boards: {len(boards)}")
+        if len(valid_boards) == 0:
+            break
+    print(last_board.strBoard())
+    print(last_board.score())
 
 
 def main():
